@@ -24,8 +24,8 @@ router.post("/login", (req, res) => {
       const isDev = process.env.NODE_ENV !== "production";
       res.cookie(ADMIN_COOKIE, sessionToken(), {
         httpOnly: true,
-        secure: !isDev, // false in dev, true in production
-        sameSite: "lax",
+        secure: !isDev,
+        sameSite: isDev ? "lax" : "none", // "none" required for cross-origin in production
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         path: "/",
       });
