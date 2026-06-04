@@ -10,17 +10,24 @@ import {
 
 const router = Router();
 
+// ── GET /api/admin/me ─────────────────────────────────────────────────────
+router.get("/me", requireAdmin, (req, res) => {
+  return res.json({ authenticated: true, username: ADMIN_USERNAME });
+});
+
 // ── POST /api/admin/login ──────────────────────────────────────────────────
 router.post("/login", (req, res) => {
   try {
     const { username, password } = req.body;
 
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+      const isDev = process.env.NODE_ENV !== "production";
       res.cookie(ADMIN_COOKIE, sessionToken(), {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: !isDev, // false in dev, true in production
         sameSite: "lax",
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
+        path: "/",
       });
       return res.json({ success: true });
     }
