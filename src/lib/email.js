@@ -133,11 +133,19 @@ export async function sendRegistrationEmail({ name, email, phone, company, desig
     htmlContent: buildHtml({ name, email, phone, company, designation, industry, registrationDate }),
   };
 
-  // Attach brochure PDF if present
+  // Attach brochure — try local file first, then Cloudinary URL fallback
+  const brevoUrl = process.env.BROCHURE_URL;
   if (fs.existsSync(BROCHURE_PATH)) {
     payload.attachment = [{
       name: "INNOBEX-2026-Brochure.pdf",
       content: fs.readFileSync(BROCHURE_PATH).toString("base64"),
+    }];
+  } else if (brevoUrl) {
+    const pdfRes = await fetch(brevoUrl);
+    const buffer = await pdfRes.arrayBuffer();
+    payload.attachment = [{
+      name: "INNOBEX-2026-Brochure.pdf",
+      content: Buffer.from(buffer).toString("base64"),
     }];
   }
 
