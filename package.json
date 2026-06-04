@@ -5,6 +5,9 @@
   "type": "module",
   "description": "Node.js + Express backend for the Innovation Business Excellence Summit and Awards 2026",
   "main": "app.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "node --watch app.js",
     "start": "node app.js"

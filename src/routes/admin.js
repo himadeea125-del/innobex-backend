@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { pool } from "../lib/db.js";
 import { ADMIN_USERNAME, ADMIN_PASSWORD, sessionToken, requireAdmin } from "../lib/adminAuth.js";
+import { sendRegistrationEmail } from "../lib/email.js";
 
 const router = Router();
 
@@ -41,6 +42,33 @@ router.get("/proxy", async (req, res) => {
   } catch (err) {
     console.error("Proxy error:", err);
     return res.status(500).json({ error: "Failed to fetch file" });
+  }
+});
+
+// Test email — hit this from browser to verify email works in production
+// GET /api/admin/test-email?to=your@email.com
+router.get("/test-email", requireAdmin, async (req, res) => {
+  const to = req.query.to;
+  if (!to) return res.status(400).json({ error: "Provide ?to=email" });
+
+  const envCheck = {
+    BREVO_API_KEY: !!process.env.BREVO_API_KEY,
+    BREVO_SENDER_EMAIL: process.env.BREVO_SENDER_EMAIL || "NOT SET",
+    BROCHURE_URL: process.env.BROCHURE_URL ? "SET" : "NOT SET",
+  };
+
+  try {
+    await sendRegistrationEmail({
+      name: "Test User",
+      email: to,
+      phone: "+91 9999999999",
+      company: "Test Company",
+      designation: "CEO",
+      industry: "Technology / IT",
+    });
+    return res.json({ success: true, message: "Test email sent to " + to, envCheck });
+  } catch (err) {
+    return res.status(500).json({ success: false, error: err.message, envCheck });
   }
 });
 
