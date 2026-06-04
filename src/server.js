@@ -16,10 +16,8 @@ const app = express();
 const PORT = process.env.PORT || 4000;
 const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN || "http://localhost:5173";
 
-// In development, allow insecure cookies over HTTP
-if (process.env.NODE_ENV !== "production") {
-  app.set("trust proxy", 1);
-}
+// Trust proxy for Railway/reverse proxy deployments
+app.set('trust proxy', 1);
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 app.use(
