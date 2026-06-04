@@ -2,6 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { v2 as cloudinary } from "cloudinary";
 import { pool } from "../lib/db.js";
+import { sendRegistrationEmail } from "../lib/email.js";
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -49,6 +50,10 @@ router.post("/", (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [name, company, email, phone, designation, industry, achievements, companyDocUrl, msmeCertUrl]
       );
+
+      // Send confirmation email (fire-and-forget — does not affect registration success)
+      sendRegistrationEmail({ name, email, phone, company, designation, industry })
+        .catch((err) => console.error("Email send failed:", err));
 
       return res.json({ success: true, message: "Registration submitted successfully." });
     } catch (err) {
