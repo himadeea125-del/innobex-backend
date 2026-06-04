@@ -21,11 +21,15 @@ router.post("/login", (req, res) => {
     const { username, password } = req.body;
 
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      const isDev = process.env.NODE_ENV !== "production";
+      // Detect HTTPS from the actual request (works behind Railway/Nginx proxies)
+      const isHttps =
+        req.secure ||
+        req.headers["x-forwarded-proto"] === "https" ||
+        process.env.NODE_ENV === "production";
       res.cookie(ADMIN_COOKIE, sessionToken(), {
         httpOnly: true,
-        secure: !isDev,
-        sameSite: isDev ? "lax" : "none", // "none" required for cross-origin in production
+        secure: isHttps,
+        sameSite: isHttps ? "none" : "lax", // "none" required for cross-origin
         maxAge: 1000 * 60 * 60 * 24, // 24 hours
         path: "/",
       });
@@ -41,7 +45,16 @@ router.post("/login", (req, res) => {
 // ── POST /api/admin/logout ─────────────────────────────────────────────────
 router.post("/logout", (req, res) => {
   try {
-    res.clearCookie(ADMIN_COOKIE);
+    const isHttps =
+      req.secure ||
+      req.headers["x-forwarded-proto"] === "https" ||
+      process.env.NODE_ENV === "production";
+    res.clearCookie(ADMIN_COOKIE, {
+      httpOnly: true,
+      secure: isHttps,
+      sameSite: isHttps ? "none" : "lax",
+      path: "/",
+    });
     return res.json({ success: true });
   } catch (err) {
     console.error("Logout error:", err);
