@@ -81,36 +81,36 @@ router.get("/registrations", requireAdmin, async (_req, res) => {
 });
 
 // ── PATCH /api/admin/registrations/:id ─────────────────────────────────────
-router.patch("/registrations/:id", requireAdmin, async (req, res) => {
-  try {
-    const { status } = req.body;
-    const id = parseInt(req.params.id, 10);
+// router.patch("/registrations/:id", requireAdmin, async (req, res) => {
+//   try {
+//     const { status } = req.body;
+//     const id = parseInt(req.params.id, 10);
 
-    if (!status) {
-      return res.status(400).json({ error: "Status is required" });
-    }
-    if (!ALLOWED_STATUSES.includes(status)) {
-      return res.status(400).json({ error: "Invalid status" });
-    }
+//     if (!status) {
+//       return res.status(400).json({ error: "Status is required" });
+//     }
+//     if (!ALLOWED_STATUSES.includes(status)) {
+//       return res.status(400).json({ error: "Invalid status" });
+//     }
 
-    const [result] = await pool.query(
-      `UPDATE registrations SET status = ? WHERE id = ?`,
-      [status, id]
-    );
+//     const [result] = await pool.query(
+//       `UPDATE registrations SET status = ? WHERE id = ?`,
+//       [status, id]
+//     );
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ error: "Registration not found" });
-    }
+//     if (result.affectedRows === 0) {
+//       return res.status(404).json({ error: "Registration not found" });
+//     }
 
-    const [rows] = await pool.query(
-      `SELECT ${SELECT_COLUMNS} FROM registrations WHERE id = ?`,
-      [id]
-    );
-    return res.json(rows[0]);
-  } catch (err) {
-    console.error("Update registration error:", err);
-    return res.status(500).json({ error: "Server error" });
-  }
-});
+//     const [rows] = await pool.query(
+//       `SELECT ${SELECT_COLUMNS} FROM registrations WHERE id = ?`,
+//       [id]
+//     );
+//     return res.json(rows[0]);
+//   } catch (err) {
+//     console.error("Update registration error:", err);
+//     return res.status(500).json({ error: "Server error" });
+//   }
+// });
 
 export default router;
