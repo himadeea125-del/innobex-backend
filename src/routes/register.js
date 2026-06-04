@@ -19,7 +19,7 @@ async function uploadToCloudinary(file) {
   if (!file) return null;
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { folder: "innobex2026", resource_type: "auto" },
+      { folder: "innobex2026", resource_type: "raw" },
       (err, result) => (err ? reject(err) : resolve(result.secure_url))
     );
     stream.end(file.buffer);
