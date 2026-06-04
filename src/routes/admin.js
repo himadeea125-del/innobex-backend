@@ -26,6 +26,24 @@ const SELECT_COLUMNS = `
   created_at       AS createdAt
 `;
 
+// Proxy Cloudinary files with correct PDF headers so browser opens inline
+router.get("/proxy", async (req, res) => {
+  const { url } = req.query;
+  if (!url || !url.includes("res.cloudinary.com")) {
+    return res.status(400).json({ error: "Invalid URL" });
+  }
+  try {
+    const response = await fetch(url);
+    const buffer = await response.arrayBuffer();
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", "inline; filename=\"document.pdf\"");
+    return res.send(Buffer.from(buffer));
+  } catch (err) {
+    console.error("Proxy error:", err);
+    return res.status(500).json({ error: "Failed to fetch file" });
+  }
+});
+
 router.get("/registrations", requireAdmin, async (_req, res) => {
   try {
     const [rows] = await pool.query(
