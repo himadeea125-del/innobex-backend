@@ -3,7 +3,6 @@ import { pool } from "../lib/db.js";
 import {
   ADMIN_USERNAME,
   ADMIN_PASSWORD,
-  ADMIN_COOKIE,
   sessionToken,
   requireAdmin,
 } from "../lib/adminAuth.js";
@@ -21,19 +20,7 @@ router.post("/login", (req, res) => {
     const { username, password } = req.body;
 
     if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
-      // Detect HTTPS from the actual request (works behind Railway/Nginx proxies)
-      const isHttps =
-        req.secure ||
-        req.headers["x-forwarded-proto"] === "https" ||
-        process.env.NODE_ENV === "production";
-      res.cookie(ADMIN_COOKIE, sessionToken(), {
-        httpOnly: true,
-        secure: isHttps,
-        sameSite: isHttps ? "none" : "lax", // "none" required for cross-origin
-        maxAge: 1000 * 60 * 60 * 24, // 24 hours
-        path: "/",
-      });
-      return res.json({ success: true });
+      return res.json({ success: true, token: sessionToken() });
     }
     return res.status(401).json({ error: "Invalid credentials" });
   } catch (err) {
@@ -43,23 +30,8 @@ router.post("/login", (req, res) => {
 });
 
 // ── POST /api/admin/logout ─────────────────────────────────────────────────
-router.post("/logout", (req, res) => {
-  try {
-    const isHttps =
-      req.secure ||
-      req.headers["x-forwarded-proto"] === "https" ||
-      process.env.NODE_ENV === "production";
-    res.clearCookie(ADMIN_COOKIE, {
-      httpOnly: true,
-      secure: isHttps,
-      sameSite: isHttps ? "none" : "lax",
-      path: "/",
-    });
-    return res.json({ success: true });
-  } catch (err) {
-    console.error("Logout error:", err);
-    return res.status(500).json({ error: "Server error" });
-  }
+router.post("/logout", (_req, res) => {
+  return res.json({ success: true });
 });
 
 // Columns aliased to camelCase so the JSON shape matches what Prisma returned.
@@ -101,36 +73,36 @@ router.get("/registrations", requireAdmin, async (_req, res) => {
 });
 
 // ── PATCH /api/admin/registrations/:id ─────────────────────────────────────
-// router.patch("/registrations/:id", requireAdmin, async (req, res) => {
-//   try {
-//     const { status } = req.body;
-//     const id = parseInt(req.params.id, 10);
+router.patch("/registrations/:id", requireAdmin, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const id = parseInt(req.params.id, 10);
 
-//     if (!status) {
-//       return res.status(400).json({ error: "Status is required" });
-//     }
-//     if (!ALLOWED_STATUSES.includes(status)) {
-//       return res.status(400).json({ error: "Invalid status" });
-//     }
+    if (!status) {
+      return res.status(400).json({ error: "Status is required" });
+    }
+    if (!ALLOWED_STATUSES.includes(status)) {
+      return res.status(400).json({ error: "Invalid status" });
+    }
 
-//     const [result] = await pool.query(
-//       `UPDATE registrations SET status = ? WHERE id = ?`,
-//       [status, id]
-//     );
+    const [result] = await pool.query(
+      `UPDATE registrations SET status = ? WHERE id = ?`,
+      [status, id]
+    );
 
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ error: "Registration not found" });
-//     }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Registration not found" });
+    }
 
-//     const [rows] = await pool.query(
-//       `SELECT ${SELECT_COLUMNS} FROM registrations WHERE id = ?`,
-//       [id]
-//     );
-//     return res.json(rows[0]);
-//   } catch (err) {
-//     console.error("Update registration error:", err);
-//     return res.status(500).json({ error: "Server error" });
-//   }
-// });
+    const [rows] = await pool.query(
+      `SELECT ${SELECT_COLUMNS} FROM registrations WHERE id = ?`,
+      [id]
+    );
+    return res.json(rows[0]);
+  } catch (err) {
+    console.error("Update registration error:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
 
 export default router;
