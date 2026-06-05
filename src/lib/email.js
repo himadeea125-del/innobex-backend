@@ -3,7 +3,7 @@ import fs from "fs";
 import { fileURLToPath } from "url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const BROCHURE_PATH = path.join(__dirname, "../../INNOBEX-BROCHURE.pdf");
+const BROCHURE_PATH = path.join(__dirname, "../../assets/INNOBEX-BROCHURE.pdf");
 
 function buildHtml({ name, email, phone, company, designation, industry, registrationDate }) {
   return `<!DOCTYPE html>
@@ -60,30 +60,7 @@ function buildHtml({ name, email, phone, company, designation, industry, registr
         We look forward to your participation in making INNOBEX 2026 a grand success in driving Business Growth Through Leadership, Investment, Innovation &amp; Financial Excellence.
       </p>
 
-      // <h2 style="color:#1a8a7a;font-size:16px;margin:0 0 10px;">&#127942; INNOBEX 2026 Awards</h2>
-      // <p style="color:#555;font-size:13px;margin:0 0 8px;">Recognition across key categories including:</p>
-      // <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:24px;">
-      //   <tr>
-      //     <td style="width:50%;vertical-align:top;">
-      //       <ul style="color:#444;line-height:2;padding-left:18px;font-size:13px;margin:0;">
-      //         <li>Business Leader of the Year</li>
-      //         <li>Innovation Excellence Award</li>
-      //         <li>MSME Excellence Award</li>
-      //         <li>Startup of the Year</li>
-      //         <li>Green Business Award</li>
-      //       </ul>
-      //     </td>
-      //     <td style="width:50%;vertical-align:top;">
-      //       <ul style="color:#444;line-height:2;padding-left:18px;font-size:13px;margin:0;">
-      //         <li>Women Leadership Award</li>
-      //         <li>Young Entrepreneur Award</li>
-      //         <li>Lifetime Achievement Award</li>
-      //         <li>Digital Transformation Award</li>
-      //         <li>Export Excellence Award</li>
-      //       </ul>
-      //     </td>
-      //   </tr>
-      // </table>
+      
 
       <h2 style="color:#1a8a7a;font-size:16px;margin:0 0 10px;">&#128222; Stay Connected</h2>
       <p style="color:#444;margin:0 0 8px;">For any questions or assistance, please contact us at:</p>
@@ -133,21 +110,10 @@ export async function sendRegistrationEmail({ name, email, phone, company, desig
     htmlContent: buildHtml({ name, email, phone, company, designation, industry, registrationDate }),
   };
 
-  // Attach brochure — try local file first, then Cloudinary URL fallback
-  const brevoUrl = process.env.BROCHURE_URL;
-  if (fs.existsSync(BROCHURE_PATH)) {
-    payload.attachment = [{
-      name: "INNOBEX-2026-Brochure.pdf",
-      content: fs.readFileSync(BROCHURE_PATH).toString("base64"),
-    }];
-  } else if (brevoUrl) {
-    const pdfRes = await fetch(brevoUrl);
-    const buffer = await pdfRes.arrayBuffer();
-    payload.attachment = [{
-      name: "INNOBEX-2026-Brochure.pdf",
-      content: Buffer.from(buffer).toString("base64"),
-    }];
-  }
+  payload.attachment = [{
+    name: "INNOBEX-2026-Brochure.pdf",
+    content: fs.readFileSync(BROCHURE_PATH).toString("base64"),
+  }];
 
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
